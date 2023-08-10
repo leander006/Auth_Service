@@ -22,6 +22,17 @@ class UserRepository {
       throw { error };
     }
   }
+
+  async getById(modelId) {
+    try {
+      const user = await User.findByPk(modelId, {
+        attributes: ["email", "id"],
+      });
+      return user;
+    } catch (error) {
+      throw { error };
+    }
+  }
 }
 
 module.exports = UserRepository;

@@ -35,11 +35,11 @@ const signin = async (req, res) => {
       err: {},
     });
   } catch (error) {
-    return res.status(500).json({
+    return res.status(error.error.statusCode).json({
       success: false,
       data: {},
-      message: "Something went wrong",
-      err: error,
+      message: error.error.message,
+      err: error.error.explanation,
     });
   }
 };

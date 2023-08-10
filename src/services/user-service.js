@@ -1,7 +1,7 @@
 const UserRepository = require("../repository/user-repository");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { jwt_key, JWT_KEY } = require("../config/serverConfig");
+const { JWT_KEY } = require("../config/serverConfig");
 class UserService {
   constructor() {
     this.userRepository = new UserRepository();
@@ -16,6 +16,37 @@ class UserService {
     }
   }
 
+  async singin(email, password) {
+    try {
+      const user = await this.userRepository.getByEmail(email);
+      const passwordMatch = this.checkPassword(password, user.password);
+      if (!passwordMatch) {
+        throw { error: "Enter valid password" };
+      }
+
+      const newJwt = this.createToken({ email: user.email, id: user.id });
+      return newJwt;
+    } catch (error) {
+      throw { error };
+    }
+  }
+
+  async isAuthenticated(token) {
+    try {
+      const response = this.verifyToken(token);
+      if (!response) {
+        throw { error: "Invalid token passed!" };
+      }
+
+      const user = await this.userRepository.getById(response.id);
+      if (!user) {
+        throw { erorr: "No user with the corresponding token!" };
+      }
+      return user.id;
+    } catch (error) {
+      throw { error };
+    }
+  }
   createToken(user) {
     try {
       const result = jwt.sign(user, JWT_KEY, { expiresIn: "1h" });
@@ -38,7 +69,10 @@ class UserService {
 
   checkPassword(userPassword, inputPassword) {
     try {
-      return bcrypt.compareSync(userPassword, inputPassword);
+      console.log(userPassword, inputPassword);
+      const res = bcrypt.compareSync(userPassword, inputPassword);
+      console.log("res ", res);
+      return res;
     } catch (error) {
       console.log(error);
       throw { error };
